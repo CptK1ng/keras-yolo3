@@ -65,4 +65,5 @@ ENV/
 
 # Data
 data/
+*.mp4
 
