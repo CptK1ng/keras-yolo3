@@ -20,4 +20,4 @@ class ZoneController:
         self.zones.append(zone1)
 
     def drawZones(self, image):
-        cv2.polylines(image, zones, isClosed=True, color[, thickness[, lineType[, shift]]]
+        cv2.polylines(image, self.zones, isClosed=True, color[, thickness[, lineType[, shift]]]
