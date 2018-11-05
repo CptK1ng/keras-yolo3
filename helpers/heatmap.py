@@ -52,4 +52,4 @@ def test_heatmap():
 
     cv2.waitKey()
 
-test_heatmap()
+#test_heatmap()
