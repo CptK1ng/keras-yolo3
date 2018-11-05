@@ -18,14 +18,16 @@ from yolo3.utils import letterbox_image
 import os
 from keras.utils import multi_gpu_model
 
+frame_number = 0
+
 class YOLO(object):
     _defaults = {
-        "model_path": 'model_data/yolo.h5',
+        "model_path": 'model_data/trained_weights_final.h5',
         "anchors_path": 'model_data/yolo_anchors.txt',
-        "classes_path": 'model_data/coco_classes.txt',
+        "classes_path": 'model_data/new_classes.txt',
         "score" : 0.3,
         "iou" : 0.45,
-        "model_image_size" : (416, 416),
+        "model_image_size" : (640, 640),
         "gpu_num" : 1,
     }
 
@@ -36,6 +38,7 @@ class YOLO(object):
         else:
             return "Unrecognized attribute name '" + n + "'"
 
+
     def __init__(self, **kwargs):
         self.__dict__.update(self._defaults) # set up default values
         self.__dict__.update(kwargs) # and update with user overrides
@@ -43,6 +46,8 @@ class YOLO(object):
         self.anchors = self._get_anchors()
         self.sess = K.get_session()
         self.boxes, self.scores, self.classes = self.generate()
+        self.f = open("/home/lukas/Projects/detections_{}.txt".format(kwargs["input"].strip('.mp4').split('/')[-1]), "a")
+
 
     def _get_class(self):
         classes_path = os.path.expanduser(self.classes_path)
@@ -102,6 +107,8 @@ class YOLO(object):
     def detect_image(self, image):
         start = timer()
 
+        value = "\n{} ".format(frame_number)
+
         if self.model_image_size != (None, None):
             assert self.model_image_size[0]%32 == 0, 'Multiples of 32 required'
             assert self.model_image_size[1]%32 == 0, 'Multiples of 32 required'
@@ -127,8 +134,8 @@ class YOLO(object):
         print('Found {} boxes for {}'.format(len(out_boxes), 'img'))
 
         font = ImageFont.truetype(font='font/FiraMono-Medium.otf',
-                    size=np.floor(3e-2 * image.size[1] + 0.5).astype('int32'))
-        thickness = (image.size[0] + image.size[1]) // 300
+                    size=np.floor(2e-2 * image.size[1] + 0.5).astype('int32'))
+        thickness = (image.size[0] + image.size[1]) // 500
 
         for i, c in reversed(list(enumerate(out_classes))):
             predicted_class = self.class_names[c]
@@ -145,6 +152,7 @@ class YOLO(object):
             bottom = min(image.size[1], np.floor(bottom + 0.5).astype('int32'))
             right = min(image.size[0], np.floor(right + 0.5).astype('int32'))
             print(label, (left, top), (right, bottom))
+            value += "{},{},{},{},{} ".format(left, top, right, bottom, c)
 
             if top - label_size[1] >= 0:
                 text_origin = np.array([left, top - label_size[1]])
@@ -163,6 +171,7 @@ class YOLO(object):
             del draw
 
         end = timer()
+        self.f.write(value)
         print(end - start)
         return image
 
@@ -170,6 +179,7 @@ class YOLO(object):
         self.sess.close()
 
 def detect_video(yolo, video_path, output_path=""):
+    global frame_number
     import cv2
     vid = cv2.VideoCapture(video_path)
     if not vid.isOpened():
@@ -179,9 +189,8 @@ def detect_video(yolo, video_path, output_path=""):
     video_size      = (int(vid.get(cv2.CAP_PROP_FRAME_WIDTH)),
                         int(vid.get(cv2.CAP_PROP_FRAME_HEIGHT)))
     isOutput = True if output_path != "" else False
-    if isOutput:
-        print("!!! TYPE:", type(output_path), type(video_FourCC), type(video_fps), type(video_size))
-        out = cv2.VideoWriter(output_path, video_FourCC, video_fps, video_size)
+    print("!!! TYPE:", type(output_path), type(video_FourCC), type(video_fps), type(video_size))
+    out = cv2.VideoWriter("video.avi", video_FourCC, video_fps, video_size)
     accum_time = 0
     curr_fps = 0
     fps = "FPS: ??"
@@ -189,6 +198,7 @@ def detect_video(yolo, video_path, output_path=""):
     while True:
         return_value, frame = vid.read()
         image = Image.fromarray(frame)
+        frame_number += 1
         image = yolo.detect_image(image)
         result = np.asarray(image)
         curr_time = timer()
@@ -201,12 +211,12 @@ def detect_video(yolo, video_path, output_path=""):
             fps = "FPS: " + str(curr_fps)
             curr_fps = 0
         cv2.putText(result, text=fps, org=(3, 15), fontFace=cv2.FONT_HERSHEY_SIMPLEX,
-                    fontScale=0.50, color=(255, 0, 0), thickness=2)
+                    fontScale=0.50, color=(255, 0, 0), thickness=1)
         cv2.namedWindow("result", cv2.WINDOW_NORMAL)
         cv2.imshow("result", result)
-        if isOutput:
-            out.write(result)
+        out.write(result)
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break
+    out.release()
     yolo.close_session()
 
