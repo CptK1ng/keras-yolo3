@@ -46,7 +46,7 @@ class YOLO(object):
         self.anchors = self._get_anchors()
         self.sess = K.get_session()
         self.boxes, self.scores, self.classes = self.generate()
-        self.f = open("/home/lukas/Projects/detections_{}.txt".format(kwargs["input"].strip('.mp4').split('/')[-1]), "a")
+        #self.f = open("/home/lukas/Projects/detections_{}.txt".format(kwargs["input"].strip('.mp4').split('/')[-1]), "a")
 
 
     def _get_class(self):
@@ -171,7 +171,7 @@ class YOLO(object):
             del draw
 
         end = timer()
-        self.f.write(value)
+        #self.f.write(value)
         print(end - start)
         return image
 
@@ -188,9 +188,11 @@ def detect_video(yolo, video_path, output_path=""):
     video_fps       = vid.get(cv2.CAP_PROP_FPS)
     video_size      = (int(vid.get(cv2.CAP_PROP_FRAME_WIDTH)),
                         int(vid.get(cv2.CAP_PROP_FRAME_HEIGHT)))
+    fourcc = cv2.VideoWriter_fourcc(*'XVID')
+
     isOutput = True if output_path != "" else False
     print("!!! TYPE:", type(output_path), type(video_FourCC), type(video_fps), type(video_size))
-    out = cv2.VideoWriter("video.avi", video_FourCC, video_fps, video_size)
+    out = cv2.VideoWriter("daemmerung.avi", fourcc, video_fps, video_size)
     accum_time = 0
     curr_fps = 0
     fps = "FPS: ??"
@@ -213,8 +215,8 @@ def detect_video(yolo, video_path, output_path=""):
         cv2.putText(result, text=fps, org=(3, 15), fontFace=cv2.FONT_HERSHEY_SIMPLEX,
                     fontScale=0.50, color=(255, 0, 0), thickness=1)
         cv2.namedWindow("result", cv2.WINDOW_NORMAL)
-        cv2.imshow("result", result)
         out.write(result)
+        cv2.imshow("result", result)
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break
     out.release()
