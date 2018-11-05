@@ -176,20 +176,18 @@ class YOLO(object):
         self.sess.close()
 
 
-def detect_video(yolo, video_path, output_path=""):
+def detect_video(yolo, video_path):
     global frame_number
     import cv2
     vid = cv2.VideoCapture(video_path)
     if not vid.isOpened():
         raise IOError("Couldn't open webcam or video")
-    video_FourCC = int(vid.get(cv2.CAP_PROP_FOURCC))
     video_fps = vid.get(cv2.CAP_PROP_FPS)
     video_size = (int(vid.get(cv2.CAP_PROP_FRAME_WIDTH)),
                   int(vid.get(cv2.CAP_PROP_FRAME_HEIGHT)))
     fourcc = cv2.VideoWriter_fourcc(*'XVID')
 
-    isOutput = True if output_path != "" else False
-    print("!!! TYPE:", type(output_path), type(video_FourCC), type(video_fps), type(video_size))
+
     out = cv2.VideoWriter("daemmerung.avi", fourcc, video_fps, video_size)
     accum_time = 0
     curr_fps = 0
