@@ -63,3 +63,6 @@ ENV/
 *.h5
 *.weights
 
+# Data
+.data/*
+
