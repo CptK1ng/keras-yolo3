@@ -1,0 +1,8 @@
+person
+bicyclist
+motorcyclist
+bicycle
+bus
+car
+motorcycle
+truck
