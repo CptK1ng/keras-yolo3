@@ -64,8 +64,7 @@ def get_iou(box_tracker, box_detector, epsilon=1e-5):
         (float) The Intersect of Union score.
     """
 
-    box_tracker = [int(box_tracker[0]), box_tracker[1], box_tracker[0] + box_tracker[2], box_tracker[1] + box_tracker[3]]
-    box_tracker = [int(v) for v in box_tracker]
+
     # COORDINATES OF THE INTERSECTION BOX
     x1 = max(box_tracker[0], box_detector[0])
     y1 = max(box_tracker[1], box_detector[1])
@@ -100,32 +99,33 @@ while (cap.isOpened()):
 
     # object tracker updating and drawing
     # frame = cv2.resize(frame, (1280, 720))
-    (success, boxes) = trackers.update(frame)
+    #(success, boxes) = trackers.update(frame)
     # loop over the bounding boxes and draw then on the frame
     objects = lines[i].split(" ")
     humans = filter_bbox_human(objects[1:])
     humans_new = humans
     j = 0
-    for box in boxes:
-        (x, y, w, h) = [int(v) for v in box]
-        cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
-        cv2.putText(frame, str(persons[j].id), (x, y - 5), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
+    for person in persons:
+
+        cv2.rectangle(frame, (person.bbox[0], person.bbox[1]), (person.bbox[2], person.bbox[3]), (0, 255, 0), 2)
+        cv2.putText(frame, str(persons[j].id), (person.bbox[0], person.bbox[1] - 5), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
+        inter_secs = np.zeros(len(humans))
+        idx_in_humans = 0
         for human in humans:
-            inter_sec = get_iou(box, human)
+            inter_secs[idx_in_humans] = get_iou(person.bbox, human)
 
-            print("{} : {}".format(inter_sec,len(humans_new)))
-            if inter_sec >= 0.5:
-                persons[j].bbox = human
-                humans_new.remove(human)
-                break
-        test = 0
 
+        if inter_secs.max() >= 0.5:
+            itemindex = np.where(inter_secs == inter_secs.max())
+            persons[j].bbox = human
+            human_new = [x != inter_secs.max() for x in humans_new]
+            humans_new.remove(human)
+            break
         j += 1
     if i > 2:
         for human in humans_new:
             cv2.rectangle(frame, (human[0], human[1]), (human[2], human[3]), (0, 255, 255), 2)
             persons.append(Person(len(persons), human))
-            trackers.add(cv2.TrackerCSRT_create(), frame, (human[0], human[1], human[2] - human[0], human[3] - human[1]))
 
     cv2.imshow('frame', frame)
     key = cv2.waitKey(1) & 0xFF
