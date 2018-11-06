@@ -112,8 +112,6 @@ while (cap.isOpened()):
         if person is None:
             continue
 
-        if person.id == 22:
-            print(person.bbox, person.prev_bbox)
         if person.prev_bbox[0] is person.bbox[0] \
                 and person.prev_bbox[1] is person.bbox[1] \
                 and person.prev_bbox[2] is person.bbox[2] \
@@ -145,8 +143,9 @@ while (cap.isOpened()):
                 human_to_delete = human
 
         if human_to_delete != None:
-            persons[j].prev_bbox = persons[j].bbox
-            persons[j].bbox = human_to_delete
+            person.update_person(human_to_delete)
+            #persons[j].prev_bbox = persons[j].bbox
+            #persons[j].bbox = human_to_delete
             humans_new.remove(human_to_delete)
 
         else:
@@ -157,7 +156,8 @@ while (cap.isOpened()):
                     max_intersec = n_i_s
                     human_to_delete = human
 
-            persons[j].prev_bbox = persons[j].bbox
+            person.update_person(persons[j].bbox, True)
+            #persons[j].prev_bbox = persons[j].bbox
             if human_to_delete != None:
                 persons[j].bbox = human_to_delete
                 humans_new.remove(human_to_delete)

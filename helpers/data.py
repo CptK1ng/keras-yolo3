@@ -76,12 +76,13 @@ class Person():
         return self.bbox[2] - self.bbox[0] < self.bbox[3] - self.bbox[1]
 
     def calculate_avg_speed(self):
-        speed_between_frame = list
-        for p in range(len(self.path)):
-            dist = math.hypot(self.path[p+1][0] - self.path[p][0], self.path[p+1][1] - self.path[p][1])
-            speed_between_frame.append(dist)
-        arr = np.asarray(speed_between_frame)
-        self.avg_speed = arr.mean()
+        speed_between_frame = list()
+        if len(self.path) > 1:
+            for p in range(len(self.path)):
+                dist = math.hypot(self.path[p][0] - self.path[p - 1][0], self.path[p][1] - self.path[p - 1][1])
+                speed_between_frame.append(dist)
+            arr = np.asarray(speed_between_frame)
+            self.avg_speed = arr.mean()
 
     def update_person(self,bbox,keep_bbox=False ):
         self.prev_bbox = self.bbox
