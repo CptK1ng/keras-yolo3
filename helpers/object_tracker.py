@@ -116,7 +116,7 @@ while (cap.isOpened()):
             print(person.bbox, person.prev_bbox)
         if person.prev_bbox[0] is person.bbox[0] \
                 and person.prev_bbox[1] is person.bbox[1] \
-                and (person.prev_bbox[2] is person.bbox[2] or person.prev_bbox[2] is person.bbox[2])\
+                and person.prev_bbox[2] is person.bbox[2] \
                 and person.prev_bbox[3] is person.bbox[3]:
             persons_counter_list[j] += 1
         else:
