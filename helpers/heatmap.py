@@ -31,7 +31,7 @@ class Heatmap(object):
                        (int(a.bbox[0] + (a.bbox[2] - a.bbox[0]) / 2), int(a.bbox[1] + (a.bbox[3] - a.bbox[1]) / 2)),
                        radius=20, color=color, thickness=-1, lineType=8, shift=0)
             #TODO: make additional outer circle with more transparency
-            cv2.addWeighted(notrans_img, 0.2, img_out, 1 - 0.2, 0, img_out)
+            cv2.addWeighted(notrans_img, 0.05, img_out, 1 - 0.2, 0, img_out)
 
         return img_out
 
