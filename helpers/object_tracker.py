@@ -52,22 +52,6 @@ Detection = namedtuple("Detection", ["image_path", "gt", "pred"])
 
 
 def get_iou(box_tracker, box_detector, epsilon=1e-5):
-    """ Given two boxes `a` and `b` defined as a list of four numbers:
-            [x1,y1,x2,y2]
-        where:
-            x1,y1 represent the upper left corner
-            x2,y2 represent the lower right corner
-        It returns the Intersect of Union score for these two boxes.
-
-    Args:
-        box_tracker:          (list of 4 numbers) [x1,y1,x2,y2]
-        box_detector:          (list of 4 numbers) [x1,y1,x2,y2]
-        epsilon:    (float) Small value to prevent division by zero
-
-    Returns:
-        (float) The Intersect of Union score.
-    """
-
 
     # COORDINATES OF THE INTERSECTION BOX
     x1 = max(box_tracker[0], box_detector[0])
@@ -96,8 +80,6 @@ def get_iou(box_tracker, box_detector, epsilon=1e-5):
 fname = "../data/detections_tag.txt"
 lines = [line.rstrip('\n') for line in open(fname)]
 
-
-
 cap = cv2.VideoCapture('../data/tag.mp4')
 i = 1
 while (cap.isOpened()):
@@ -107,7 +89,6 @@ while (cap.isOpened()):
     humans = filter_bbox_human(objects[1:])
     humans_new = humans
     j = 0
-
     for person in persons:
         if person is None:
             continue
