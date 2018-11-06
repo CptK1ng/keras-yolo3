@@ -3,17 +3,28 @@ from helpers.actions import ActionDB, Action, GroupAction, FallingAction, ZoneAc
 
 class ScoreController(object):
     action_db = None # (reference to) Database of type "ActionDB"
+    frames = None
 
-    def __init__(self, action_db):
+    def __init__(self, action_db, frames):
         self.action_db = action_db
+        self.frames = frames
 
-    def get_threat_level(self):
-        return len(self.action_db.actions)
+    def get_feel_good_level(self, framenr=None):
+        if framenr is None:
+            return len(self.action_db.filter())
+        else:
+            return False # else calc frame level score
+
+    def get_threat_level(self, framenr=None):
+        if framenr is None:
+            return len(self.action_db.actions)#+self.frames.nr_of_cars
+        else:
+            return False  # else calc frame level score
 
 
 def test_sc():
     db = ActionDB()
-    sc = ScoreController(db)
+    sc = ScoreController(db, None)
 
     db.add(Action(99, (9, 9, 19, 19)))  # timestamp,bbox
     db.add(GroupAction(2, 123, (100, 100, 200, 200)))  # nr,timestamp,bbox
@@ -23,6 +34,7 @@ def test_sc():
     db.add(ZoneAction(0, 1, (10, 20, 50, 70)))  # zoneid,timestamp,bbox
     print(db)
 
+    print("FEEL GOOD LEVEl: ", sc.get_feel_good_level())
     print("THREAD LEVEl: ", sc.get_threat_level())
 
 
