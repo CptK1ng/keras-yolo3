@@ -19,7 +19,8 @@ from helpers.data import Person
 
 trackers = cv2.MultiTracker_create()
 persons = list()
-
+persons_counter_list = list()
+person_id = 0
 
 def filter_bbox_human(list_of_bboxes):
     list_of_persons = list()
@@ -30,11 +31,14 @@ def filter_bbox_human(list_of_bboxes):
 
 
 def start_initial_trackers(frame_n, bboxes):
+    global person_id
     i = 0
     for box in bboxes:
         persons.append(Person(i, box))
+        persons_counter_list.append(0)
         trackers.add(cv2.TrackerCSRT_create(), frame_n, (box[0], box[1], box[2] - box[0], box[3] - box[1]))
         i += 1
+    person_id = i
 
 
 # import the necessary packages
@@ -92,31 +96,49 @@ def get_iou(box_tracker, box_detector, epsilon=1e-5):
 fname = "../data/detections_tag.txt"
 lines = [line.rstrip('\n') for line in open(fname)]
 
-persons_counter_list = list()
+
 
 cap = cv2.VideoCapture('../data/tag.mp4')
 i = 1
 while (cap.isOpened()):
     ret, frame = cap.read()
 
-    # object tracker updating and drawing
-    # frame = cv2.resize(frame, (1280, 720))
-    #(success, boxes) = trackers.update(frame)
-    # loop over the bounding boxes and draw then on the frame
     objects = lines[i].split(" ")
     humans = filter_bbox_human(objects[1:])
     humans_new = humans
     j = 0
+
     for person in persons:
+        if person is None:
+            continue
+
+        if person.id == 22:
+            print(person.bbox, person.prev_bbox)
+        if person.prev_bbox[0] is person.bbox[0] \
+                and person.prev_bbox[1] is person.bbox[1] \
+                and (person.prev_bbox[2] is person.bbox[2] or person.prev_bbox[2] is person.bbox[2])\
+                and person.prev_bbox[3] is person.bbox[3]:
+            persons_counter_list[j] += 1
+        else:
+            persons_counter_list[j] = 0
+
+        person_removed = False
+        for counter in persons_counter_list:
+            if counter >= 10:
+                persons.remove(person)
+                del(persons_counter_list[j])
+                person_removed = True
+                break
+        if person_removed:
+            continue
 
         cv2.rectangle(frame, (person.bbox[0], person.bbox[1]), (person.bbox[2], person.bbox[3]), (0, 255, 0), 2)
-        cv2.putText(frame, str(persons[j].id), (person.bbox[0], person.bbox[1] - 5), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
+        cv2.putText(frame, str(person.id), (person.bbox[0], person.bbox[1] - 5), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
         inter_secs = np.zeros(len(humans))
         idx_in_humans = 0
         max_intersec = 0
         human_to_delete = None
         for human in humans:
-            #inter_secs[idx_in_humans] = get_iou(person.bbox, human)
             n_i_s = get_iou(person.bbox, human)
             if n_i_s > max_intersec:
                 max_intersec = n_i_s
@@ -125,34 +147,27 @@ while (cap.isOpened()):
         if human_to_delete != None:
             persons[j].prev_bbox = persons[j].bbox
             persons[j].bbox = human_to_delete
-            # human_new = [x != inter_secs.max() for x in humans_new]
             humans_new.remove(human_to_delete)
 
         else:
             max_intersec = 0
             for human in humans:
-                # inter_secs[idx_in_humans] = get_iou(person.bbox, human)
                 n_i_s = get_iou(person.prev_bbox, human)
                 if n_i_s > max_intersec:
                     max_intersec = n_i_s
                     human_to_delete = human
 
+            persons[j].prev_bbox = persons[j].bbox
             if human_to_delete != None:
-                persons[j].prev_bbox = persons[j].bbox
                 persons[j].bbox = human_to_delete
-                # human_new = [x != inter_secs.max() for x in humans_new]
                 humans_new.remove(human_to_delete)
 
-        '''if inter_secs.max() >= 0.5:
-            itemindex, = np.where(inter_secs == inter_secs.max())
-            persons[j].bbox = humans[itemindex[0]]
-            #human_new = [x != inter_secs.max() for x in humans_new]
-            humans_new.remove(humans[itemindex[0]])'''
+
         j += 1
     if i > 2:
         for human in humans_new:
-            cv2.rectangle(frame, (human[0], human[1]), (human[2], human[3]), (0, 255, 255), 2)
-            persons.append(Person(len(persons), human))
+            person_id += 1
+            persons.append(Person(person_id, human))
             persons_counter_list.append(0)
 
     cv2.imshow('frame', frame)
