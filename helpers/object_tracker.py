@@ -92,6 +92,8 @@ def get_iou(box_tracker, box_detector, epsilon=1e-5):
 fname = "../data/detections_tag.txt"
 lines = [line.rstrip('\n') for line in open(fname)]
 
+persons_counter_list = list()
+
 cap = cv2.VideoCapture('../data/tag.mp4')
 i = 1
 while (cap.isOpened()):
@@ -111,21 +113,47 @@ while (cap.isOpened()):
         cv2.putText(frame, str(persons[j].id), (person.bbox[0], person.bbox[1] - 5), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
         inter_secs = np.zeros(len(humans))
         idx_in_humans = 0
+        max_intersec = 0
+        human_to_delete = None
         for human in humans:
-            inter_secs[idx_in_humans] = get_iou(person.bbox, human)
+            #inter_secs[idx_in_humans] = get_iou(person.bbox, human)
+            n_i_s = get_iou(person.bbox, human)
+            if n_i_s > max_intersec:
+                max_intersec = n_i_s
+                human_to_delete = human
 
+        if human_to_delete != None:
+            persons[j].prev_bbox = persons[j].bbox
+            persons[j].bbox = human_to_delete
+            # human_new = [x != inter_secs.max() for x in humans_new]
+            humans_new.remove(human_to_delete)
 
-        if inter_secs.max() >= 0.5:
-            itemindex = np.where(inter_secs == inter_secs.max())
-            persons[j].bbox = human
-            human_new = [x != inter_secs.max() for x in humans_new]
-            humans_new.remove(human)
-            break
+        else:
+            max_intersec = 0
+            for human in humans:
+                # inter_secs[idx_in_humans] = get_iou(person.bbox, human)
+                n_i_s = get_iou(person.prev_bbox, human)
+                if n_i_s > max_intersec:
+                    max_intersec = n_i_s
+                    human_to_delete = human
+
+            if human_to_delete != None:
+                persons[j].prev_bbox = persons[j].bbox
+                persons[j].bbox = human_to_delete
+                # human_new = [x != inter_secs.max() for x in humans_new]
+                humans_new.remove(human_to_delete)
+
+        '''if inter_secs.max() >= 0.5:
+            itemindex, = np.where(inter_secs == inter_secs.max())
+            persons[j].bbox = humans[itemindex[0]]
+            #human_new = [x != inter_secs.max() for x in humans_new]
+            humans_new.remove(humans[itemindex[0]])'''
         j += 1
     if i > 2:
         for human in humans_new:
             cv2.rectangle(frame, (human[0], human[1]), (human[2], human[3]), (0, 255, 255), 2)
             persons.append(Person(len(persons), human))
+            persons_counter_list.append(0)
 
     cv2.imshow('frame', frame)
     key = cv2.waitKey(1) & 0xFF

@@ -65,6 +65,7 @@ class Person():
     def __init__(self, id, bbox):
         self.id = id
         self.bbox = bbox
+        self.prev_bbox = bbox
         self.path = list()
         self.avg_speed = None
 
