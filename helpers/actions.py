@@ -14,6 +14,10 @@ class FallingAction(Action):
     thisClassHasNoExtraVars = None
 
 
+class SoundAction(Action):
+    thisClassHasNoExtraVars = None
+
+
 class GroupAction(Action):
     nr_of_people = None
 

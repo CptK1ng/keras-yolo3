@@ -66,3 +66,4 @@ ENV/
 # Data
 data/
 *.mp4
+*.wav

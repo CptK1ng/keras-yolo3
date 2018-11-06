@@ -1,3 +1,5 @@
+import math
+import numpy as np
 class Frame():
     def __init__(self, img=None, list_of_persons=list(), list_of_groups=list(), list_of_vehicles=list(),
                  list_of_zones=list(), image_height=1080, image_width=1920, bboxes=list()):
@@ -72,6 +74,52 @@ class Person():
     def is_falling(self):
         # bbox = (xmin, ymin, xmax, ymax)
         return self.bbox[2] - self.bbox[0] < self.bbox[3] - self.bbox[1]
+
+    def calculate_avg_speed(self):
+        speed_between_frame = list
+        for p in range(len(self.path)):
+            dist = math.hypot(self.path[p+1][0] - self.path[p][0], self.path[p+1][1] - self.path[p][1])
+            speed_between_frame.append(dist)
+        arr = np.asarray(speed_between_frame)
+        self.avg_speed = arr.mean()
+
+    def update_person(self,bbox,keep_bbox=False ):
+        self.prev_bbox = self.bbox
+        if not keep_bbox:
+            self.bbox = bbox
+        middle_of_foot = (bbox[0] + ((bbox[1]-bbox[0])/2), bbox[3])
+        self.path.append(middle_of_foot)
+        self.calculate_avg_speed()
+
+
+
+class Car():
+    def __init__(self, id, bbox):
+        self.id = id
+        self.bbox = bbox
+        self.path = list()
+        self.avg_speed = None
+
+    def calculate_avg_speed(self):
+        speed_between_frame = list
+        for p in range(len(self.path)):
+            dist = math.hypot(self.path[p+1][0] - self.path[p][0], self.path[p+1][1] - self.path[p][1])
+            speed_between_frame.append(dist)
+        arr = np.asarray(speed_between_frame)
+        self.avg_speed = arr.mean()
+
+    def update_car(self,bbox,keep_bbox=False ):
+        self.prev_bbox = self.bbox
+        if not keep_bbox:
+            self.bbox = bbox
+        middle_of_foot = (bbox[0] + ((bbox[1]-bbox[0])/2), bbox[3])
+        self.path.append(middle_of_foot)
+        self.calculate_avg_speed()
+
+
+        
+
+
 
 
 class Group():
