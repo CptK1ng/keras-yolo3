@@ -83,6 +83,12 @@ class Person():
         arr = np.asarray(speed_between_frame)
         self.avg_speed = arr.mean()
 
+    def update_person(self,bbox):
+        self.prev_bbox = self.bbox
+        self.bbox = bbox
+        middle_of_foot = (bbox[0] + ((bbox[1]-bbox[0])/2), bbox[3])
+        self.path.append(middle_of_foot)
+        self.calculate_avg_speed()
 
 
 class Car():
@@ -100,7 +106,14 @@ class Car():
         arr = np.asarray(speed_between_frame)
         self.avg_speed = arr.mean()
 
-    def update_person(self,bbox):
+    def update_car(self,bbox):
+        self.prev_bbox = self.bbox
+        self.bbox = bbox
+        middle_of_foot = (bbox[0] + ((bbox[1]-bbox[0])/2), bbox[3])
+        self.path.append(middle_of_foot)
+        self.calculate_avg_speed()
+
+
         
 
 
