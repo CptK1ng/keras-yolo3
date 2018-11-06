@@ -46,27 +46,47 @@ import cv2
 Detection = namedtuple("Detection", ["image_path", "gt", "pred"])
 
 
-def bb_intersection_over_union(boxA, boxB):
-    # determine the (x, y)-coordinates of the intersection rectangle
-    xA = max(boxA[0], boxB[0])
-    yA = max(boxA[1], boxB[1])
-    xB = min(boxA[2], boxB[2])
-    yB = min(boxA[3], boxB[3])
 
-    # compute the area of intersection rectangle
-    interArea = max(0, xB - xA + 1) * max(0, yB - yA + 1)
+def get_iou(box_tracker, box_detector, epsilon=1e-5):
+    """ Given two boxes `a` and `b` defined as a list of four numbers:
+            [x1,y1,x2,y2]
+        where:
+            x1,y1 represent the upper left corner
+            x2,y2 represent the lower right corner
+        It returns the Intersect of Union score for these two boxes.
 
-    # compute the area of both the prediction and ground-truth
-    # rectangles
-    boxAArea = (boxA[2] - boxA[0] + 1) * (boxA[3] - boxA[1] + 1)
-    boxBArea = (boxB[2] - boxB[0] + 1) * (boxB[3] - boxB[1] + 1)
+    Args:
+        box_tracker:          (list of 4 numbers) [x1,y1,x2,y2]
+        box_detector:          (list of 4 numbers) [x1,y1,x2,y2]
+        epsilon:    (float) Small value to prevent division by zero
 
-    # compute the intersection over union by taking the intersection
-    # area and dividing it by the sum of prediction + ground-truth
-    # areas - the interesection area
-    iou = interArea / float(boxAArea + boxBArea - interArea)
+    Returns:
+        (float) The Intersect of Union score.
+    """
 
-    # return the intersection over union value
+    box_tracker = [int(box_tracker[0]), box_tracker[1], box_tracker[0] + box_tracker[2], box_tracker[1] + box_tracker[3]]
+    box_tracker = [int(v) for v in box_tracker]
+    # COORDINATES OF THE INTERSECTION BOX
+    x1 = max(box_tracker[0], box_detector[0])
+    y1 = max(box_tracker[1], box_detector[1])
+    x2 = min(box_tracker[2], box_detector[2])
+    y2 = min(box_tracker[3], box_detector[3])
+
+    # AREA OF OVERLAP - Area where the boxes intersect
+    width = (x2 - x1)
+    height = (y2 - y1)
+    # handle case where there is NO overlap
+    if (width<0) or (height <0):
+        return 0.0
+    area_overlap = width * height
+
+    # COMBINED AREA
+    area_a = (box_tracker[2] - box_tracker[0]) * (box_tracker[3] - box_tracker[1])
+    area_b = (box_detector[2] - box_detector[0]) * (box_detector[3] - box_detector[1])
+    area_combined = area_a + area_b - area_overlap
+
+    # RATIO OF AREA OF OVERLAP OVER COMBINED AREA
+    iou = area_overlap / (area_combined+epsilon)
     return iou
 
 
@@ -91,17 +111,22 @@ while (cap.isOpened()):
         cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
         cv2.putText(frame, str(persons[j].id), (x, y - 5), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
         for human in humans:
-            inter_sec = bb_intersection_over_union(box, human)
-            if inter_sec > 0.9:
+            inter_sec = get_iou(box, human)
+
+            print("{} : {}".format(inter_sec,len(humans_new)))
+            if inter_sec >= 0.5:
                 persons[j].bbox = human
                 humans_new.remove(human)
+                break
+        test = 0
 
         j += 1
-    '''if i > 2:
+    if i > 2:
         for human in humans_new:
+            cv2.rectangle(frame, (human[0], human[1]), (human[2], human[3]), (0, 255, 255), 2)
             persons.append(Person(len(persons), human))
             trackers.add(cv2.TrackerCSRT_create(), frame, (human[0], human[1], human[2] - human[0], human[3] - human[1]))
-    '''
+
     cv2.imshow('frame', frame)
     key = cv2.waitKey(1) & 0xFF
 
