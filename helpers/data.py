@@ -91,6 +91,7 @@ class Person():
         self.calculate_avg_speed()
 
 
+
 class Car():
     def __init__(self, id, bbox):
         self.id = id

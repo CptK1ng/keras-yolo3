@@ -2,12 +2,12 @@ from yolo import YOLO
 import cv2
 from PIL import Image, ImageFont, ImageDraw
 import numpy as np
+from helpers.actions import ActionDB
 
 
 def run_detection(video_path,mode, output_path=None):
     yolo = YOLO()
     out = None
-
     cap = cv2.VideoCapture(video_path)
 
     video_fps = cap.get(cv2.CAP_PROP_FPS)
