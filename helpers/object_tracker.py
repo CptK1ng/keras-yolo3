@@ -132,6 +132,11 @@ while (cap.isOpened()):
 
         cv2.rectangle(frame, (person.bbox[0], person.bbox[1]), (person.bbox[2], person.bbox[3]), (0, 255, 0), 2)
         cv2.putText(frame, str(person.id), (person.bbox[0], person.bbox[1] - 5), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
+        if person.avg_speed is not None:
+            speed = "%.1f" % person.avg_speed
+            cv2.putText(frame, str(speed), (person.bbox[0] + 40, person.bbox[1] - 5), cv2.FONT_HERSHEY_SIMPLEX, 1,
+                        (0, 255, 255), 2)
+
         inter_secs = np.zeros(len(humans))
         idx_in_humans = 0
         max_intersec = 0
@@ -144,8 +149,6 @@ while (cap.isOpened()):
 
         if human_to_delete != None:
             person.update_person(human_to_delete)
-            #persons[j].prev_bbox = persons[j].bbox
-            #persons[j].bbox = human_to_delete
             humans_new.remove(human_to_delete)
 
         else:
@@ -157,7 +160,6 @@ while (cap.isOpened()):
                     human_to_delete = human
 
             person.update_person(persons[j].bbox, True)
-            #persons[j].prev_bbox = persons[j].bbox
             if human_to_delete != None:
                 persons[j].bbox = human_to_delete
                 humans_new.remove(human_to_delete)
