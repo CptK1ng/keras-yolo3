@@ -20,6 +20,13 @@ class Frame():
                 list_of_persons.append(list(map(int, elem.split(",")[:-1])))
         self.list_of_persons = list_of_persons
 
+    def filter_bbox_vehicles(self, list_of_bboxes):
+        list_of_persons = list()
+        for elem in list_of_bboxes:
+            if elem is not "" and elem[-1] is "5":
+                list_of_persons.append(list(map(int, elem.split(",")[:-1])))
+        self.list__of_vehicles = list_of_persons
+
     def check_for_neighbours(self):
         x_min, y_min, x_max, y_max = 0, 1, 2, 3
         groups = list()
